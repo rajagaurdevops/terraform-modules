@@ -1,62 +1,79 @@
+# modules/vpc/main.tf
+
 # Create a VPC
-resource "aws_vpc" "my_vpc" {
-  cidr_block           = "10.0.0.0/16"
+resource "aws_vpc" "this" {
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = {
-    Name = "my_vpc"
-  }
+  tags = merge(
+    {
+      Name = var.vpc_name
+    },
+    var.tags
+  )
 }
 
 # Create a private subnet
 resource "aws_subnet" "private_subnet" {
-  vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = var.availability_zone
 
-  tags = {
-    Name = "private-subnet"
-  }
+  tags = merge(
+    {
+      Name = "${var.vpc_name}-private-subnet"
+    },
+    var.tags
+  )
 }
 
 # Create a public subnet
 resource "aws_subnet" "public_subnet" {
-  vpc_id                  = aws_vpc.my_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true  # Automatically assign public IPs
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.availability_zone
+  map_public_ip_on_launch = true
 
-  tags = {
-    Name = "public-subnet"
-  }
+  tags = merge(
+    {
+      Name = "${var.vpc_name}-public-subnet"
+    },
+    var.tags
+  )
 }
 
-# Create an Internet Gateway
-resource "aws_internet_gateway" "my_igw" {
-  vpc_id = aws_vpc.my_vpc.id
+# Create Internet Gateway
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
 
-  tags = {
-    Name = "my-igw"
-  }
+  tags = merge(
+    {
+      Name = "${var.vpc_name}-igw"
+    },
+    var.tags
+  )
 }
 
-# Create a Route Table for the public subnet
-resource "aws_route_table" "my_rt" {
-  vpc_id = aws_vpc.my_vpc.id
+# Create Route Table for Public Subnet
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.this.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.my_igw.id
+    gateway_id = aws_internet_gateway.this.id
   }
 
-  tags = {
-    Name = "my-route-table"
-  }
+  tags = merge(
+    {
+      Name = "${var.vpc_name}-public-rt"
+    },
+    var.tags
+  )
 }
 
-# Associate the public subnet with the route table
-resource "aws_route_table_association" "public_sub_assoc" {
+# Associate Public Subnet with Route Table
+resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.my_rt.id
+  route_table_id = aws_route_table.public_rt.id
 }

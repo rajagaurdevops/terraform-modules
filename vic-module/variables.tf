@@ -8,23 +8,23 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "private_subnet_cidr" {
-  description = "CIDR block for private subnet"
+variable "public_subnet_cidr" {
+  description = "CIDR for public subnet"
   type        = string
 }
 
-variable "public_subnet_cidr" {
-  description = "CIDR block for public subnet"
+variable "private_subnet_cidr" {
+  description = "CIDR for private subnet"
   type        = string
 }
 
 variable "availability_zone" {
-  description = "Availability Zone for subnets"
+  description = "AWS Availability Zone"
   type        = string
 }
 
 variable "tags" {
-  description = "Additional tags for all resources"
+  description = "Common tags"
   type        = map(string)
   default     = {}
 }

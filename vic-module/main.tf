@@ -1,6 +1,6 @@
-# modules/vpc/main.tf
-
+# -------------------------
 # Create a VPC
+# -------------------------
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -14,21 +14,9 @@ resource "aws_vpc" "this" {
   )
 }
 
-# Create a private subnet
-resource "aws_subnet" "private_subnet" {
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnet_cidr
-  availability_zone = var.availability_zone
-
-  tags = merge(
-    {
-      Name = "${var.vpc_name}-private-subnet"
-    },
-    var.tags
-  )
-}
-
-# Create a public subnet
+# -------------------------
+# Create Public Subnet
+# -------------------------
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidr
@@ -43,7 +31,25 @@ resource "aws_subnet" "public_subnet" {
   )
 }
 
-# Create Internet Gateway
+# -------------------------
+# Create Private Subnet
+# -------------------------
+resource "aws_subnet" "private_subnet" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = var.availability_zone
+
+  tags = merge(
+    {
+      Name = "${var.vpc_name}-private-subnet"
+    },
+    var.tags
+  )
+}
+
+# -------------------------
+# Internet Gateway
+# -------------------------
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
@@ -55,7 +61,9 @@ resource "aws_internet_gateway" "this" {
   )
 }
 
-# Create Route Table for Public Subnet
+# -------------------------
+# Public Route Table
+# -------------------------
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.this.id
 
@@ -72,7 +80,9 @@ resource "aws_route_table" "public_rt" {
   )
 }
 
-# Associate Public Subnet with Route Table
+# -------------------------
+# Route Table Association
+# -------------------------
 resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_rt.id

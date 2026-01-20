@@ -1,89 +1,58 @@
 # -------------------------
-# Create a VPC
+# Create base VPC
 # -------------------------
-resource "aws_vpc" "this" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = merge(
-    {
-      Name = var.vpc_name
-    },
-    var.tags
-  )
+resource "aws_vpc" "dev-vpc" {
+  cidr_block = var.cidr
 }
 
 # -------------------------
-# Create Public Subnet
+# Public subnet in AZ1
 # -------------------------
-resource "aws_subnet" "public_subnet" {
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = var.public_subnet_cidr
-  availability_zone       = var.availability_zone
+resource "aws_subnet" "dev-sub1" {
+  vpc_id                  = aws_vpc.dev-vpc.id
+  cidr_block              = "10.0.0.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
-
-  tags = merge(
-    {
-      Name = "${var.vpc_name}-public-subnet"
-    },
-    var.tags
-  )
 }
 
 # -------------------------
-# Create Private Subnet
+# Public subnet in AZ2
 # -------------------------
-resource "aws_subnet" "private_subnet" {
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnet_cidr
-  availability_zone = var.availability_zone
-
-  tags = merge(
-    {
-      Name = "${var.vpc_name}-private-subnet"
-    },
-    var.tags
-  )
+resource "aws_subnet" "dev-sub2" {
+  vpc_id                  = aws_vpc.dev-vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
 }
 
 # -------------------------
-# Internet Gateway
+# Internet gateway for egress
 # -------------------------
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-
-  tags = merge(
-    {
-      Name = "${var.vpc_name}-igw"
-    },
-    var.tags
-  )
+resource "aws_internet_gateway" "dev-igw" {
+  vpc_id = aws_vpc.dev-vpc.id
 }
 
 # -------------------------
-# Public Route Table
+# Public route table with default route via IGW
 # -------------------------
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.this.id
+resource "aws_route_table" "dev-RT" {
+  vpc_id = aws_vpc.dev-vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
+    gateway_id = aws_internet_gateway.dev-igw.id
   }
-
-  tags = merge(
-    {
-      Name = "${var.vpc_name}-public-rt"
-    },
-    var.tags
-  )
 }
 
 # -------------------------
-# Route Table Association
+# Associate each subnet to the public route table
 # -------------------------
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.public_rt.id
+resource "aws_route_table_association" "dev-rta1" {
+  subnet_id      = aws_subnet.dev-sub1.id
+  route_table_id = aws_route_table.dev-RT.id
+}
+
+resource "aws_route_table_association" "dev-rta2" {
+  subnet_id      = aws_subnet.dev-sub2.id
+  route_table_id = aws_route_table.dev-RT.id
 }

@@ -37,3 +37,4 @@ variable "route_table_name" {
   description = "Name of the public route table"
   type        = string
 }
+

@@ -45,6 +45,39 @@ output "resource_id" {
 Replace the input names and values with the variables defined by the module.
 The `source` can point to a local directory, a Git repository, or a registry.
 
+## Use the module from another repository with Terragrunt
+
+Terragrunt can download and use this module from a separate repository. Create a
+`terragrunt.hcl` file in the repository that will use the module:
+
+```hcl
+terraform {
+	source = "git::https://github.com/organization/terraform-modules.git//module-directory?ref=v1.0.0"
+}
+
+inputs = {
+	name        = "example"
+	environment = "development"
+	value       = "custom-value"
+}
+```
+
+Update the URL with the module repository, module directory, and Git tag or
+commit you want to use. Pinning a version makes deployments repeatable.
+
+Run Terragrunt from the directory containing `terragrunt.hcl`:
+
+```bash
+terragrunt init
+terragrunt plan
+terragrunt apply
+```
+
+Terragrunt passes the values in `inputs` to the module's input variables. The
+module's outputs can then be used by other Terraform resources or exposed from
+the Terragrunt configuration. For multiple related directories, a parent
+Terragrunt configuration can manage them together with `terragrunt run --all`.
+
 ## Module inputs
 
 Inputs are variables declared inside the module. They allow the caller to

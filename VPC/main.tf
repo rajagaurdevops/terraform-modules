@@ -1,3 +1,4 @@
+# provider block to specify the AWS region
 provider "aws" {
   region = us-east-1
   
@@ -22,7 +23,7 @@ resource "aws_subnet" "private" {
   }
 }
 
-# Public Subnet
+# Create a public subnet within the VPC
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.this.id   # # Associate the subnet with the VPC
   cidr_block              = var.public_subnet_cidr  # Define the IP range for the public subnet
